@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: room-allocator-service
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+---
+
+hotel:
+  room-types:
+    premium-threshold: 100
