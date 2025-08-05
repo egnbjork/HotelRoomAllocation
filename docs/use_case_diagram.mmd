@@ -1,0 +1,37 @@
+%% Mermaid Use Case Diagram
+%% Actor and use cases for the Hotel Room Allocation API
+
+%% Required directive
+%%{ init: { "theme": "default" } }%%
+
+%% Define diagram type
+%% Note: Mermaid does not have native 'usecase' support, so we simulate it with graph
+
+graph TD
+
+    A[Hotel] -->|Submits room allocation request| UC1[POST Hotel Room Allocation API]
+    UC1 --> UC2[Validate request data]
+    UC2 --> UC3[Classify guests into premium & economy]
+    UC3 --> UC4[Allocate rooms based on willingness to pay]
+    UC4 --> UC5[Assign premium rooms]
+    UC4 --> UC6[Assign economy rooms]
+    UC4 --> UC7[Upgrade economy guests to premium if needed]
+    UC5 --> UC8[Calculate total revenue]
+    UC6 --> UC8[Calculate total revenue]
+    UC7 --> UC8[Calculate total revenue]
+    UC8 --> UC9[Return room usage & revenue response]
+
+    subgraph API Endpoint
+      UC1
+    end
+
+    subgraph Domain Logic
+      UC2
+      UC3
+      UC4
+      UC5
+      UC6
+      UC7
+      UC8
+      UC9
+    end
