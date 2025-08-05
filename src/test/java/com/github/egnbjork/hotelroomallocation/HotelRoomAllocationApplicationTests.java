@@ -1,10 +1,10 @@
-package com.github.egnbjork.roomallocator;
+package com.github.egnbjork.hotelroomallocation;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class RoomAllocatorApplicationTests {
+class HotelRoomAllocationApplicationTests {
 
     @Test
     void contextLoads() {

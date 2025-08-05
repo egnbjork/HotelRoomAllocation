@@ -1,13 +1,13 @@
-package com.github.egnbjork.roomallocator;
+package com.github.egnbjork.hotelroomallocation;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RoomAllocatorApplication {
+public class HotelRoomAllocationApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(RoomAllocatorApplication.class, args);
+        SpringApplication.run(HotelRoomAllocationApplication.class, args);
     }
 
 }
