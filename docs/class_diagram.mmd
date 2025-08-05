@@ -1,0 +1,78 @@
+classDiagram
+direction TB
+
+    class RoomsAllocationController {
+        +allocateRooms(RoomsAllocationRequest request): RoomsAllocationResponse
+    }
+
+    class RoomsAllocationRequest {
+        <<record>>
+        +int premiumRooms
+        +int economyRooms
+        +List<BigDecimal> potentialGuests
+    }
+
+    class RoomsAllocationResponse {
+        <<record>>
+        +int usagePremium
+        +BigDecimal revenuePremium
+        +int usageEconomy
+        +BigDecimal revenueEconomy
+    }
+
+    class RoomsAllocationService {
+        +allocateRooms(RoomsAllocationRequest request): RoomsAllocationResponse
+    }
+
+    class RoomsAllocationDataMapper {
+        +toGuests(List<BigDecimal> guestList): List<Guest>
+        +toAvailableRooms(RoomsAllocationRequest request): Map<RoomType, Integer>
+        +toResponse(RoomsAllocationResult result): RoomsAllocationResponse
+    }
+
+    class Guest {
+        <<record>>
+	    +BigDecimal offerPrice
+        +isPremium(): boolean
+    }
+
+    class AllocateRooms {
+        <<port>>
+        +handle(Map<RoomType, Integer> availableRooms, List<Guest> guests): RoomsAllocationResult
+    }
+
+    class RoomsAllocatorFacade {
+        +handle(Map<RoomType, Integer> availableRooms, List<Guest> guests): RoomsAllocationResult
+    }
+
+    class RoomsAllocationResult {
+        <<record>>
+        +List<RoomsAllocationMetrics> allocationMetrics
+    }
+
+    class RoomsAllocationMetrics {
+        <<record>>
+        +RoomType type
+        +int usageCount
+        +BigDecimal revenue
+    }
+
+
+    class RoomType {
+        <<enum>>
+        PREMIUM
+        ECONOMY
+    }
+
+    RoomsAllocationController --> RoomsAllocationRequest
+    RoomsAllocationController --> RoomsAllocationResponse
+    RoomsAllocationController --> RoomsAllocationService
+    RoomsAllocationService --> RoomsAllocationDataMapper :uses
+    RoomsAllocationDataMapper --> Guest :maps to
+    RoomsAllocationService --> AllocateRooms :delegates to
+    AllocateRooms <|.. RoomsAllocatorFacade : implements
+    RoomsAllocatorFacade --> RoomsAllocationResult
+    RoomsAllocationResult --> RoomsAllocationMetrics
+    RoomsAllocationMetrics --> RoomType
+    RoomsAllocatorFacade --> Guest
+    RoomsAllocatorFacade --> RoomType
