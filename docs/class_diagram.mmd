@@ -31,7 +31,6 @@ direction TB
     }
 
     class Guest {
-        <<record>>
 	    +BigDecimal offerPrice
         +isPremium(): boolean
     }
@@ -41,7 +40,7 @@ direction TB
         +handle(Map<RoomType, Integer> availableRooms, List<Guest> guests): RoomsAllocationResult
     }
 
-    class RoomsAllocatorFacade {
+    class RoomsAllocator {
         +handle(Map<RoomType, Integer> availableRooms, List<Guest> guests): RoomsAllocationResult
     }
 
@@ -70,9 +69,9 @@ direction TB
     RoomsAllocationService --> RoomsAllocationDataMapper :uses
     RoomsAllocationDataMapper --> Guest :maps to
     RoomsAllocationService --> AllocateRooms :delegates to
-    AllocateRooms <|.. RoomsAllocatorFacade : implements
-    RoomsAllocatorFacade --> RoomsAllocationResult
+    AllocateRooms <|.. RoomsAllocator : implements
+    RoomsAllocator --> RoomsAllocationResult
     RoomsAllocationResult --> RoomsAllocationMetrics
     RoomsAllocationMetrics --> RoomType
-    RoomsAllocatorFacade --> Guest
-    RoomsAllocatorFacade --> RoomType
+    RoomsAllocator --> Guest
+    RoomsAllocator --> RoomType
