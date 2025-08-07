@@ -51,7 +51,8 @@ direction TB
 
     class RoomsAllocationResult {
         <<record>>
-        +List<RoomsAllocationMetrics> allocationMetrics
+        +Set<RoomsAllocationMetrics> allocationMetrics
+        +getRoomMetricsForType(RoomType roomType): Optional<RoomsAllocationMetrics>
     }
 
     class RoomsAllocationMetrics {
