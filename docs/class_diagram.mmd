@@ -37,11 +37,16 @@ direction TB
 
     class AllocateRooms {
         <<port>>
-        +handle(Map<RoomType, Integer> availableRooms, List<Guest> guests): RoomsAllocationResult
+        +handle(List<AvailableRooms> availableRooms, List<Guest> guests): RoomsAllocationResult
     }
 
     class RoomsAllocator {
-        +handle(Map<RoomType, Integer> availableRooms, List<Guest> guests): RoomsAllocationResult
+        +handle(List<AvailableRooms> availableRooms, List<Guest> guests): RoomsAllocationResult
+    }
+
+    class AvailableRooms {
+        + RoomType roomType,
+        + int availableCount
     }
 
     class RoomsAllocationResult {
@@ -74,4 +79,5 @@ direction TB
     RoomsAllocationResult --> RoomsAllocationMetrics
     RoomsAllocationMetrics --> RoomType
     RoomsAllocator --> Guest
-    RoomsAllocator --> RoomType
+    AvailableRooms --> RoomType
+    RoomsAllocator --> AvailableRooms

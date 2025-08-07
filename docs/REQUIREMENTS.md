@@ -1,12 +1,12 @@
 Requirements: Hotel Room Allocation System
 
-R1: Room Inventory Configuration
++ R1: Room Inventory Configuration
 
-The hotel room allocation system shall support a configurable number of premium and economy rooms for each occupancy request.
++ The hotel room allocation system shall support a configurable number of premium and economy rooms for each occupancy request.
 
-R2: Guest Offer Handling
++ R2: Guest Offer Handling
 
-The system shall accept a list of potential guests, each defined by a single numeric value representing their willingness to pay for one night.
++ The system shall accept a list of potential guests, each defined by a single numeric value representing their willingness to pay for one night.
 
 R3: Premium Guest Assignment
 
