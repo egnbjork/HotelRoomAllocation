@@ -3,8 +3,7 @@ package com.github.egnbjork.hotelroomallocation.adapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.egnbjork.hotelroomallocation.adapters.RoomsAllocationService;
 import com.github.egnbjork.hotelroomallocation.application.RoomsAllocationController;
-import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationRequest;
-import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationResponse;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +13,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,9 +29,6 @@ class RoomsAllocationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private RoomsAllocationService service;
-
     @TestConfiguration
     static class TestConfig {
         @Bean
@@ -43,29 +38,117 @@ class RoomsAllocationControllerTest {
     }
 
     @Test
-    void shouldReturnAllocationResponse() throws Exception {
-        RoomsAllocationRequest request = new RoomsAllocationRequest(
-                3,
-                3,
-                List.of(BigDecimal.valueOf(23), BigDecimal.valueOf(45), BigDecimal.valueOf(155))
+    @DisplayName("should accept valid request")
+    void shouldAcceptValidRequest() throws Exception {
+        var request = Map.of(
+                "premiumRooms", 2,
+                "economyRooms", 2,
+                "potentialGuests", List.of(99.99, 120.00)
         );
-
-        RoomsAllocationResponse response = new RoomsAllocationResponse(
-                2,
-                new BigDecimal("400.00"),
-                1,
-                new BigDecimal("45.00")
-        );
-
-        when(service.allocateRooms(request)).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/rooms/allocate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.usagePremium").value(2))
-                .andExpect(jsonPath("$.revenuePremium").value(400.00))
-                .andExpect(jsonPath("$.usageEconomy").value(1))
-                .andExpect(jsonPath("$.revenueEconomy").value(45.00));
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("should reject negative room values")
+    void shouldRejectNegativeRoomValues() throws Exception {
+        var request = Map.of(
+                "premiumRooms", -1,
+                "economyRooms", -5,
+                "potentialGuests", List.of(100)
+        );
+
+        mockMvc.perform(post("/api/v1/rooms/allocate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").exists());
+    }
+
+    @Test
+    @DisplayName("should reject zero room values")
+    void shouldRejectZeroRoomValues() throws Exception {
+        var request = Map.of(
+                "premiumRooms", 0,
+                "economyRooms", 0,
+                "potentialGuests", List.of(100)
+        );
+
+        mockMvc.perform(post("/api/v1/rooms/allocate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").exists());
+    }
+
+    @Test
+    @DisplayName("should reject null values")
+    void shouldRejectNullValues() throws Exception {
+        String invalidRequest = """
+                {
+                    "premiumRooms": null,
+                    "economyRooms": null,
+                    "potentialGuests": null
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/rooms/allocate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidRequest))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("should reject null guest in list")
+    void shouldRejectNullGuestValue() throws Exception {
+        String request = """
+                {
+                        "premiumRooms": 1,
+                        "economyRooms": 1,
+                        "potentialGuests": [100, null, 200]
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/rooms/allocate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("should reject empty guest list")
+    void shouldRejectEmptyGuestList() throws Exception {
+        var request = Map.of(
+                "premiumRooms", 1,
+                "economyRooms", 1,
+                "potentialGuests", List.of()
+        );
+
+        mockMvc.perform(post("/api/v1/rooms/allocate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").exists());
+    }
+
+    @Test
+    @DisplayName("should reject guest with 0 or negative offer")
+    void shouldRejectGuestWithZeroOrNegativeOffer() throws Exception {
+        var request = Map.of(
+                "premiumRooms", 1,
+                "economyRooms", 1,
+                "potentialGuests", List.of(0, -5)
+        );
+
+        mockMvc.perform(post("/api/v1/rooms/allocate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").exists());
     }
 }

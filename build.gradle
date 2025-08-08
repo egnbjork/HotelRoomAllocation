@@ -20,6 +20,8 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation("jakarta.validation:jakarta.validation-api:${jakartaValidation}")
+    implementation("org.hibernate.validator:hibernate-validator:${hibernateValidation}")
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     runtimeOnly "ch.qos.logback:logback-classic:${logbackVersion}"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

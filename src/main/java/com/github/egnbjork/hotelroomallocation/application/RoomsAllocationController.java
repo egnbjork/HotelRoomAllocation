@@ -3,6 +3,7 @@ package com.github.egnbjork.hotelroomallocation.application;
 import com.github.egnbjork.hotelroomallocation.adapters.RoomsAllocationService;
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationRequest;
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +21,11 @@ public class RoomsAllocationController {
     }
 
     @PostMapping("/allocate")
-    public ResponseEntity<RoomsAllocationResponse> allocateRooms(@RequestBody RoomsAllocationRequest request) {
+    public ResponseEntity<RoomsAllocationResponse> allocateRooms(
+            @Valid
+            @RequestBody
+            RoomsAllocationRequest request
+    ) {
         RoomsAllocationResponse response = service.allocateRooms(request);
         return ResponseEntity.ok(response);
     }
