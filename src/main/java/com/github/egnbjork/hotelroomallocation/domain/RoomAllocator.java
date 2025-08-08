@@ -62,7 +62,6 @@ public class RoomAllocator implements AllocateRooms {
 
     private AvailableRooms getPremiumRooms(Map<RoomType, AvailableRooms> roomsByType) {
         AvailableRooms premiumRooms = roomsByType.get(RoomType.PREMIUM);
-        //TODO: what to expect when no premium rooms are provided
         if (premiumRooms == null) {
             throw new AvailableRoomsException("There are no premium rooms provided");
         }

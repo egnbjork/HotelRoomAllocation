@@ -199,7 +199,6 @@ class AllocateRoomsTest {
         );
     }
 
-    // TODO: what to expect if there are more premium guests than rooms available
     @Test
     @DisplayName("should pick best payed premium guests if there are more premium guests than rooms available")
     void morePremiumGuestsThanRoomsAvailable() {
