@@ -18,4 +18,4 @@ management:
 
 hotel:
   room-types:
-    premium-price-threshold: ${PREMIUM_PRICE_THRESHOLD}
+    premium-price-threshold: ${PREMIUM_PRICE_THRESHOLD:100}
