@@ -1,6 +1,7 @@
-package com.github.egnbjork.hotelroomallocation.adapters;
+package com.github.egnbjork.hotelroomallocation.application;
 
-import com.github.egnbjork.hotelroomallocation.adapters.mappers.RoomsAllocationDataMapper;
+import com.github.egnbjork.hotelroomallocation.adapters.RoomsAllocatorFacade;
+import com.github.egnbjork.hotelroomallocation.application.mappers.RoomsAllocationDataMapper;
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationRequest;
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationResponse;
 import org.springframework.stereotype.Service;

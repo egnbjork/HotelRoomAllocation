@@ -1,6 +1,5 @@
 package com.github.egnbjork.hotelroomallocation.application;
 
-import com.github.egnbjork.hotelroomallocation.adapters.RoomsAllocationService;
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationRequest;
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationResponse;
 import jakarta.validation.Valid;

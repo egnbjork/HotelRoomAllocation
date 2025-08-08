@@ -1,4 +1,4 @@
-package com.github.egnbjork.hotelroomallocation.adapters.mappers;
+package com.github.egnbjork.hotelroomallocation.application.mappers;
 
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationRequest;
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationResponse;
@@ -41,7 +41,7 @@ class RoomsAllocationDataMapperTest {
         List<BigDecimal> guestOffers = List.of(
                 new BigDecimal("50"), new BigDecimal("100"), new BigDecimal("200")
         );
-        RoomsAllocationRequest request = new RoomsAllocationRequest(0, 0, guestOffers);
+        RoomsAllocationRequest request = new RoomsAllocationRequest(1, 1, guestOffers);
 
         List<Guest> guests = mapper.toGuests(request);
 

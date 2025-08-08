@@ -1,8 +1,6 @@
-package com.github.egnbjork.hotelroomallocation.adapter;
+package com.github.egnbjork.hotelroomallocation.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.egnbjork.hotelroomallocation.adapters.RoomsAllocationService;
-import com.github.egnbjork.hotelroomallocation.application.RoomsAllocationController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

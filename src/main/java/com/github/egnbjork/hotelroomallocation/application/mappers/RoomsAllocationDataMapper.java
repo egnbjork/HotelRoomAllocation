@@ -1,4 +1,4 @@
-package com.github.egnbjork.hotelroomallocation.adapters.mappers;
+package com.github.egnbjork.hotelroomallocation.application.mappers;
 
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationRequest;
 import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationResponse;
