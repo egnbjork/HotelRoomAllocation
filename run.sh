@@ -1,6 +1,10 @@
 #!/usr/bin/env sh
+set -e
 
-# This file will be included as a Docker ENTRYPOINT in our automated testing evironment. 
+echo "Building application..."
+./gradlew clean bootJar -x test
 
-echo "Build and Run you server here"
+echo "Starting application..."
+export "$(<.env xargs)"
+java -jar build/libs/*.jar
 exit 1

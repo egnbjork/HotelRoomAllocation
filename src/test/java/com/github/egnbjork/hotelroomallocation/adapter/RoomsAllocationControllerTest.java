@@ -46,7 +46,7 @@ class RoomsAllocationControllerTest {
                 "potentialGuests", List.of(99.99, 120.00)
         );
 
-        mockMvc.perform(post("/api/v1/rooms/allocate")
+        mockMvc.perform(post("/occupancy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -61,7 +61,7 @@ class RoomsAllocationControllerTest {
                 "potentialGuests", List.of(100)
         );
 
-        mockMvc.perform(post("/api/v1/rooms/allocate")
+        mockMvc.perform(post("/occupancy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -77,7 +77,7 @@ class RoomsAllocationControllerTest {
                 "potentialGuests", List.of(100)
         );
 
-        mockMvc.perform(post("/api/v1/rooms/allocate")
+        mockMvc.perform(post("/occupancy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -95,7 +95,7 @@ class RoomsAllocationControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/rooms/allocate")
+        mockMvc.perform(post("/occupancy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequest))
                 .andExpect(status().isBadRequest())
@@ -113,7 +113,7 @@ class RoomsAllocationControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/rooms/allocate")
+        mockMvc.perform(post("/occupancy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isBadRequest())
@@ -129,7 +129,7 @@ class RoomsAllocationControllerTest {
                 "potentialGuests", List.of()
         );
 
-        mockMvc.perform(post("/api/v1/rooms/allocate")
+        mockMvc.perform(post("/occupancy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -145,7 +145,7 @@ class RoomsAllocationControllerTest {
                 "potentialGuests", List.of(0, -5)
         );
 
-        mockMvc.perform(post("/api/v1/rooms/allocate")
+        mockMvc.perform(post("/occupancy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())

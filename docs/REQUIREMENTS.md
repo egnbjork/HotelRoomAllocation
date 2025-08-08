@@ -32,7 +32,7 @@ Requirements: Hotel Room Allocation System
 
     The system shall return the number of occupied rooms per category (premium, economy) in the output of each occupancy calculation.
 
-R9: Input Validation
++ R9: Input Validation
     If the room counts or guest offers are invalid (e.g., negative values, nulls), the system shall reject the request with a descriptive error response.
 
 + R10: REST API Design
