@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,18 +33,46 @@ class AllocateRoomsTest {
 
         RoomsAllocationResult result = allocateRooms.handle(availableRooms, premiumGuestList);
 
-        assertEquals(1, result.allocationMetrics().size());
-        assertEquals(RoomType.PREMIUM, result.allocationMetrics().getFirst().roomType());
-
-        RoomsAllocationMetrics premiumRoomMetrics = result.allocationMetrics().getFirst();
-        assertEquals(3, premiumRoomMetrics.usageCount());
-        assertEquals(new BigDecimal("500.0"), result.allocationMetrics().getFirst().revenue());
+        Map<RoomType, RoomsAllocationMetrics> premiumRoomMetricsMap = result
+                .allocationMetrics()
+                .stream()
+                .collect(Collectors
+                        .toMap(
+                                RoomsAllocationMetrics::roomType,
+                                Function.identity()
+                        ));
+        assertEquals(3, premiumRoomMetricsMap.get(RoomType.PREMIUM).usageCount());
+        assertEquals(0, premiumRoomMetricsMap.get(RoomType.ECONOMY).usageCount());
+        assertEquals(new BigDecimal("500.0"), premiumRoomMetricsMap.get(RoomType.PREMIUM).revenue());
+        assertEquals(new BigDecimal("0"), premiumRoomMetricsMap.get(RoomType.ECONOMY).revenue());
     }
 
     @Test
     @DisplayName("should assign economy guests to economy rooms and calculate proper revenue")
     void shouldAssignEconomy() {
+        var premiumRooms = new AvailableRooms(RoomType.PREMIUM, 5);
+        var economyRooms = new AvailableRooms(RoomType.ECONOMY, 10);
+        var availableRooms = List.of(premiumRooms, economyRooms);
+        var premiumGuestList = List.of(
+                new Guest(new BigDecimal(100), new BigDecimal("10.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("19.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("20"))
+        );
 
+        RoomsAllocationResult result = allocateRooms.handle(availableRooms, premiumGuestList);
+
+        Map<RoomType, RoomsAllocationMetrics> premiumRoomMetricsMap = result
+                .allocationMetrics()
+                .stream()
+                .collect(Collectors
+                        .toMap(
+                                RoomsAllocationMetrics::roomType,
+                                Function.identity()
+                        ));
+        assertEquals(0, premiumRoomMetricsMap.get(RoomType.PREMIUM).usageCount());
+        assertEquals(3, premiumRoomMetricsMap.get(RoomType.ECONOMY).usageCount());
+        assertEquals(new BigDecimal("0"), premiumRoomMetricsMap.get(RoomType.PREMIUM).revenue());
+        assertEquals(new BigDecimal("50.0"), premiumRoomMetricsMap.get(RoomType.ECONOMY).revenue());
     }
 
     @Test
