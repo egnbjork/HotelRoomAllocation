@@ -19,74 +19,87 @@ public class RoomAllocator implements AllocateRooms {
     private static final Logger logger = LoggerFactory.getLogger(RoomAllocator.class);
 
     public RoomsAllocationResult handle(List<AvailableRooms> availableRooms, List<Guest> guests) {
-        Map<RoomType, AvailableRooms> roomsByType = availableRooms.stream().collect(Collectors.toMap(
-                AvailableRooms::roomType,
-                Function.identity()
-        ));
+        Map<RoomType, AvailableRooms> roomsByType = mapRoomsByType(availableRooms);
+        AvailableRooms premiumRooms = getPremiumRooms(roomsByType);
+        AvailableRooms economyRooms = roomsByType.getOrDefault(RoomType.ECONOMY, new AvailableRooms(RoomType.ECONOMY, 0));
 
-        var premiumPreBookedRooms = roomsByType.get(RoomType.PREMIUM);
-        var economyPrebookedRooms = roomsByType.get(RoomType.ECONOMY);
+        List<Guest> premiumGuests = getSortedPremiumGuests(guests);
+        List<Guest> economyGuests = getSortedEconomyGuests(guests);
 
-        logger.info("[ROOMALLOCATOR] received available {} economy rooms, {} premium rooms",
-                economyPrebookedRooms != null ? economyPrebookedRooms.roomCount() : "no economy rooms available",
-                premiumPreBookedRooms != null ? premiumPreBookedRooms.roomCount() : "no premium rooms available");
+        premiumGuests = limitToAvailableRooms(premiumGuests, premiumRooms.roomCount());
 
-        if (premiumPreBookedRooms == null) {
-            throw new AvailableRoomsException("there are no premium rooms provided");
+        int freePremiumRoomsCount = premiumRooms.roomCount() - premiumGuests.size();
+        int overbookedEconomyRoomsCount = economyGuests.size() - economyRooms.roomCount();
+        logger.debug("[ROOMALLOCATOR] {} premium rooms are free", freePremiumRoomsCount);
+        logger.debug("[ROOMALLOCATOR] {} economy rooms are free", economyRooms.roomCount() - economyGuests.size());
+
+        if (freePremiumRoomsCount > 0 && overbookedEconomyRoomsCount > 0) {
+            int economyForUpgradeGuestCount = Math.min(freePremiumRoomsCount, overbookedEconomyRoomsCount);
+            logger.info("[ROOMALLOCATOR] {} economy guests will be upgraded", economyForUpgradeGuestCount);
+
+            List<Guest> upgradedGuests = economyGuests.subList(0, economyForUpgradeGuestCount);
+            economyGuests = economyGuests.subList(economyForUpgradeGuestCount, economyGuests.size());
+
+            List<Guest> updatedPremium = new ArrayList<>(premiumGuests);
+            updatedPremium.addAll(upgradedGuests);
+
+            premiumGuests = new ArrayList<>(premiumGuests);
+            premiumGuests.addAll(updatedPremium);
         }
 
-        if (economyPrebookedRooms == null) {
-            economyPrebookedRooms = new AvailableRooms(RoomType.ECONOMY, 0);
-        }
+        economyGuests = limitToAvailableRooms(economyGuests, economyRooms.roomCount());
 
-        var premiumGuests = guests.stream()
+        RoomsAllocationMetrics premiumMetrics = calculateMetrics(RoomType.PREMIUM, premiumGuests);
+        RoomsAllocationMetrics economyMetrics = calculateMetrics(RoomType.ECONOMY, economyGuests);
+
+        return new RoomsAllocationResult(List.of(premiumMetrics, economyMetrics));
+    }
+
+    private Map<RoomType, AvailableRooms> mapRoomsByType(List<AvailableRooms> availableRooms) {
+        return availableRooms.stream()
+                .collect(Collectors.toMap(AvailableRooms::roomType, Function.identity()));
+    }
+
+    private AvailableRooms getPremiumRooms(Map<RoomType, AvailableRooms> roomsByType) {
+        AvailableRooms premiumRooms = roomsByType.get(RoomType.PREMIUM);
+        //TODO: what to expect when no premium rooms are provided
+        if (premiumRooms == null) {
+            throw new AvailableRoomsException("There are no premium rooms provided");
+        }
+        return premiumRooms;
+    }
+
+    private List<Guest> getSortedPremiumGuests(List<Guest> guests) {
+        List<Guest> premiumGuests = guests.stream()
                 .filter(Guest::isPremium)
                 .sorted(Comparator.comparing(Guest::offerPrice).reversed())
                 .toList();
-        logger.info("[ROOMALLOCATOR]: received {} premium guests", premiumGuests.size());
+        logger.info("[ROOMALLOCATOR] received {} premium guests", premiumGuests.size());
+        return premiumGuests;
+    }
 
-        //TODO: what to do if there are more premiumGuests than rooms
-        if (premiumGuests.size() > premiumPreBookedRooms.roomCount()) {
-            premiumGuests = premiumGuests.subList(0, premiumPreBookedRooms.roomCount());
-        }
-
-        var economyGuests = guests.stream()
+    private List<Guest> getSortedEconomyGuests(List<Guest> guests) {
+        List<Guest> economyGuests = guests.stream()
                 .filter(n -> !n.isPremium())
                 .sorted(Comparator.comparing(Guest::offerPrice).reversed())
                 .toList();
         logger.info("[ROOMALLOCATOR] received {} economy guests", economyGuests.size());
+        return economyGuests;
+    }
 
-        var availablePremiumRooms = premiumPreBookedRooms.roomCount() - premiumGuests.size();
-        logger.debug("[ROOMALLOCATOR] {} premium rooms are free", availablePremiumRooms);
-
-        var availableEconomyRooms = economyPrebookedRooms.roomCount() - economyGuests.size();
-        logger.debug("[ROOMALLOCATOR] {} economy rooms are free", availableEconomyRooms);
-
-        if (availablePremiumRooms > 0 && availableEconomyRooms < 0) {
-            logger.info("[ROOMALLOCATOR] {} economy guests overbooked", -availableEconomyRooms);
-            var economyGuestsForUpgrade = Math.min(availablePremiumRooms, -availableEconomyRooms);
-            logger.info("[ROOMALLOCATOR] {} economy guests can be upgraded", economyGuestsForUpgrade);
-            premiumGuests = new ArrayList<>(premiumGuests);
-            premiumGuests.addAll(economyGuests.subList(0, economyGuestsForUpgrade));
-            economyGuests = economyGuests.subList(economyGuestsForUpgrade, economyGuests.size());
+    private List<Guest> limitToAvailableRooms(List<Guest> guests, int availableRooms) {
+        if (guests.size() > availableRooms) {
+            return guests.subList(0, availableRooms);
         }
+        return guests;
+    }
 
-        if (economyGuests.size() > availableEconomyRooms) {
-            logger.info("[ROOMALLOCATOR] there are more economy guests than economy rooms");
-            economyGuests = economyGuests.subList(0, economyPrebookedRooms.roomCount());
-        }
-
-        var premiumRevenue = premiumGuests.stream()
+    private RoomsAllocationMetrics calculateMetrics(RoomType roomType, List<Guest> guests) {
+        BigDecimal revenue = guests.stream()
                 .map(Guest::offerPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        var premiumRoomMetrics = new RoomsAllocationMetrics(RoomType.PREMIUM, premiumGuests.size(), premiumRevenue);
 
-        var economyRevenue = economyGuests.stream()
-                .map(Guest::offerPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        var economyRoomsMetrics = new RoomsAllocationMetrics(RoomType.ECONOMY, economyGuests.size(), economyRevenue);
-        logger.info("[DELETE] {} economy room metrics", economyRoomsMetrics);
-
-        return new RoomsAllocationResult(List.of(premiumRoomMetrics, economyRoomsMetrics));
+        return new RoomsAllocationMetrics(roomType, guests.size(), revenue);
     }
 }
+

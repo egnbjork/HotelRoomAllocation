@@ -181,7 +181,7 @@ class AllocateRoomsTest {
                 () -> allocateRooms.handle(availableRoomsList, guestList)
         );
 
-        assertEquals("there are no premium rooms provided", exception.getMessage());
+        assertEquals("There are no premium rooms provided", exception.getMessage());
     }
 
     // TODO: what to expect if there are no economy rooms provided
