@@ -12,8 +12,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AllocateRoomsTest {
 
@@ -76,21 +75,95 @@ class AllocateRoomsTest {
     }
 
     @Test
-    @DisplayName("should upgrade economy guests if economy rooms are filled")
+    @DisplayName("should upgrade economy guests if economy rooms are fully booked")
     void shouldUpgradeEconomy() {
+        var premiumRooms = new AvailableRooms(RoomType.PREMIUM, 5);
+        var economyRooms = new AvailableRooms(RoomType.ECONOMY, 2);
+        var availableRooms = List.of(premiumRooms, economyRooms);
+        var premiumGuestList = List.of(
+                new Guest(new BigDecimal(100), new BigDecimal("10.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("19.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("20"))
+        );
 
+        RoomsAllocationResult result = allocateRooms.handle(availableRooms, premiumGuestList);
+
+        Map<RoomType, RoomsAllocationMetrics> premiumRoomMetricsMap = result
+                .allocationMetrics()
+                .stream()
+                .collect(Collectors
+                        .toMap(
+                                RoomsAllocationMetrics::roomType,
+                                Function.identity()
+                        ));
+        assertEquals(1, premiumRoomMetricsMap.get(RoomType.PREMIUM).usageCount());
+        assertEquals(2, premiumRoomMetricsMap.get(RoomType.ECONOMY).usageCount());
+        assertEquals(new BigDecimal("20"), premiumRoomMetricsMap.get(RoomType.PREMIUM).revenue());
+        assertEquals(new BigDecimal("30.0"), premiumRoomMetricsMap.get(RoomType.ECONOMY).revenue());
     }
 
     @Test
-    @DisplayName("should upgrade economy guests to premium if there are available premium rooms")
+    @DisplayName("should pick top-paying economy guests for upgrade" +
+            " if there are not enough premium rooms for all economy+premium guests")
     void shouldUpgradeEconomyIfPremiumAvailable() {
+        var premiumRooms = new AvailableRooms(RoomType.PREMIUM, 2);
+        var economyRooms = new AvailableRooms(RoomType.ECONOMY, 2);
+        var availableRooms = List.of(premiumRooms, economyRooms);
+        var guestList = List.of(
+                new Guest(new BigDecimal(100), new BigDecimal("10.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("19.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("20")),
+                new Guest(new BigDecimal(100), new BigDecimal("10.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("19.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("20"))
+        );
 
+        RoomsAllocationResult result = allocateRooms.handle(availableRooms, guestList);
+
+        Map<RoomType, RoomsAllocationMetrics> premiumRoomMetricsMap = result
+                .allocationMetrics()
+                .stream()
+                .collect(Collectors
+                        .toMap(
+                                RoomsAllocationMetrics::roomType,
+                                Function.identity()
+                        ));
+        assertEquals(2, premiumRoomMetricsMap.get(RoomType.PREMIUM).usageCount());
+        assertEquals(2, premiumRoomMetricsMap.get(RoomType.ECONOMY).usageCount());
+        assertEquals(new BigDecimal("40"), premiumRoomMetricsMap.get(RoomType.PREMIUM).revenue());
+        assertEquals(new BigDecimal("39.0"), premiumRoomMetricsMap.get(RoomType.ECONOMY).revenue());
     }
 
     @Test
-    @DisplayName("should upgrade economy guests in descending order of willingness to pay")
-    void shouldUpgradeEconomyInDescendingOrderOfWillingness() {
+    @DisplayName("should not upgrade any economy guests if premium rooms are fully booked and leave top paying ones")
+    void shouldNotUpgradeEconomyIfPremiumNotAvailable() {
+        var premiumRooms = new AvailableRooms(RoomType.PREMIUM, 1);
+        var economyRooms = new AvailableRooms(RoomType.ECONOMY, 2);
+        var availableRooms = List.of(premiumRooms, economyRooms);
+        var guestList = List.of(
+                new Guest(new BigDecimal(100), new BigDecimal("10.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("19.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("20")),
+                new Guest(new BigDecimal(100), new BigDecimal("10.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("19.5")),
+                new Guest(new BigDecimal(100), new BigDecimal("20")),
+                new Guest(new BigDecimal(100), new BigDecimal("200"))
+        );
 
+        RoomsAllocationResult result = allocateRooms.handle(availableRooms, guestList);
+
+        Map<RoomType, RoomsAllocationMetrics> premiumRoomMetricsMap = result
+                .allocationMetrics()
+                .stream()
+                .collect(Collectors
+                        .toMap(
+                                RoomsAllocationMetrics::roomType,
+                                Function.identity()
+                        ));
+        assertEquals(1, premiumRoomMetricsMap.get(RoomType.PREMIUM).usageCount());
+        assertEquals(2, premiumRoomMetricsMap.get(RoomType.ECONOMY).usageCount());
+        assertEquals(new BigDecimal("200"), premiumRoomMetricsMap.get(RoomType.PREMIUM).revenue());
+        assertEquals(new BigDecimal("40"), premiumRoomMetricsMap.get(RoomType.ECONOMY).revenue());
     }
 
     // TODO: what to expect if there are no premium rooms provided
@@ -111,9 +184,24 @@ class AllocateRoomsTest {
         assertEquals("there are no premium rooms provided", exception.getMessage());
     }
 
+    // TODO: what to expect if there are no economy rooms provided
+    @Test
+    @DisplayName("should not fail if no economy rooms provided")
+    void shouldNotThrowIfEconomyRoomsAreNotFound() {
+        var economyRooms = new AvailableRooms(RoomType.PREMIUM, 10);
+        List<AvailableRooms> availableRoomsList = List.of(economyRooms);
+        var guestList = List.of(
+                new Guest(new BigDecimal(100), new BigDecimal(100))
+        );
+
+        assertDoesNotThrow(
+                () -> allocateRooms.handle(availableRoomsList, guestList)
+        );
+    }
+
     // TODO: what to expect if there are more premium guests than rooms available
     @Test
-    @DisplayName("should randomly pick premium guests if there are more premium guests than rooms available")
+    @DisplayName("should pick best payed premium guests if there are more premium guests than rooms available")
     void morePremiumGuestsThanRoomsAvailable() {
         var premiumRooms = new AvailableRooms(RoomType.PREMIUM, 5);
         var economyRooms = new AvailableRooms(RoomType.ECONOMY, 10);
@@ -132,10 +220,10 @@ class AllocateRoomsTest {
 
         RoomsAllocationResult result = allocateRooms.handle(availableRooms, premiumGuestList);
 
-        assertEquals(1, result.allocationMetrics().size());
         assertEquals(RoomType.PREMIUM, result.allocationMetrics().getFirst().roomType());
 
         RoomsAllocationMetrics premiumRoomMetrics = result.allocationMetrics().getFirst();
         assertEquals(5, premiumRoomMetrics.usageCount());
+        assertEquals(new BigDecimal("1000"), premiumRoomMetrics.revenue());
     }
 }
