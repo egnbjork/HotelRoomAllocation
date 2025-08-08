@@ -13,9 +13,9 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
-class RoomAllocationServiceTest {
+class RoomsAllocationServiceTest {
     @Autowired
-    RoomAllocationService service;
+    RoomsAllocationService service;
 
     private static final List<BigDecimal> DEFAULT_GUESTS = List.of(
             BigDecimal.valueOf(23),
@@ -33,13 +33,10 @@ class RoomAllocationServiceTest {
     @Test
     @DisplayName("Should allocate rooms correctly when given 3 premium and 3 economy rooms")
     void readMeTestCase1() {
-        // given
         RoomsAllocationRequest request = new RoomsAllocationRequest(3, 3, DEFAULT_GUESTS);
 
-        // when
         RoomsAllocationResponse response = service.allocateRooms(request);
 
-        // then
         assertThat(response.usagePremium()).isEqualTo(3);
         assertThat(response.revenuePremium()).isEqualByComparingTo("738");
 

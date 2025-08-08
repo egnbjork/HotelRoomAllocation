@@ -35,7 +35,7 @@ Requirements: Hotel Room Allocation System
 R9: Input Validation
     If the room counts or guest offers are invalid (e.g., negative values, nulls), the system shall reject the request with a descriptive error response.
 
-R10: REST API Design
++ R10: REST API Design
 
 The /occupancy endpoint shall accept a POST request with the following input structure:
 

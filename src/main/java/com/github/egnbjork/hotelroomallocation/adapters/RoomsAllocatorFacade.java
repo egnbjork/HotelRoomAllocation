@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class RoomAllocatorFacade {
+public class RoomsAllocatorFacade {
 
     private final AllocateRooms allocateRooms;
 
-    public RoomAllocatorFacade() {
+    public RoomsAllocatorFacade() {
         allocateRooms = new RoomAllocator();
     }
 

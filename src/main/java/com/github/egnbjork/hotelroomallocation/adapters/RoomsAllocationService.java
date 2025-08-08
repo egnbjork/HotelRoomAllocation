@@ -6,20 +6,20 @@ import com.github.egnbjork.hotelroomallocation.application.dto.RoomsAllocationRe
 import org.springframework.stereotype.Service;
 
 @Service
-public class RoomAllocationService {
+public class RoomsAllocationService {
     private final RoomsAllocationDataMapper mapper;
-    private final RoomAllocatorFacade roomAllocatorFacade;
+    private final RoomsAllocatorFacade roomsAllocatorFacade;
 
-    public RoomAllocationService(RoomsAllocationDataMapper mapper,
-                                 RoomAllocatorFacade roomAllocatorFacade) {
+    public RoomsAllocationService(RoomsAllocationDataMapper mapper,
+                                  RoomsAllocatorFacade roomsAllocatorFacade) {
         this.mapper = mapper;
-        this.roomAllocatorFacade = roomAllocatorFacade;
+        this.roomsAllocatorFacade = roomsAllocatorFacade;
     }
 
     public RoomsAllocationResponse allocateRooms(RoomsAllocationRequest request) {
         var availableRooms = mapper.toAvailableRooms(request);
         var guests = mapper.toGuests(request);
-        var result = roomAllocatorFacade.allocateRooms(availableRooms, guests);
+        var result = roomsAllocatorFacade.allocateRooms(availableRooms, guests);
         return mapper.toRoomAllocationResponse(result);
     }
 }

@@ -24,6 +24,10 @@ direction TB
         +allocateRooms(RoomsAllocationRequest request): RoomsAllocationResponse
     }
 
+    class RoomsAllocatorFacade {
+        +allocateRooms(List<AvailableRooms> availableRooms, List<Guest> guests): RoomsAllocationResult
+    }
+
     class RoomsAllocationDataMapper {
         +toGuests(List<BigDecimal> guestList): List<Guest>
         +toAvailableRooms(RoomsAllocationRequest request): Map<RoomType, Integer>
@@ -74,7 +78,9 @@ direction TB
     RoomsAllocationController --> RoomsAllocationService
     RoomsAllocationService --> RoomsAllocationDataMapper :uses
     RoomsAllocationDataMapper --> Guest :maps to
-    RoomsAllocationService --> AllocateRooms :delegates to
+    RoomsAllocationDataMapper --> AvailableRooms :maps to
+    RoomsAllocationService --> RoomsAllocatorFacade
+    RoomsAllocatorFacade --> AllocateRooms :delegates to
     AllocateRooms <|.. RoomsAllocator : implements
     RoomsAllocator --> RoomsAllocationResult
     RoomsAllocationResult --> RoomsAllocationMetrics
